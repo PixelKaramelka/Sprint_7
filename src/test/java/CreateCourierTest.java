@@ -47,17 +47,16 @@ public class CreateCourierTest {
 
         courierSteps.courierCreate(courier)
                 .assertThat()
-                .body("ok", equalTo(true))
-                .and()
-                .statusCode(201);
+                .statusCode(201)
+                .body("ok", equalTo(true));
 
         courierSteps.courierCreate(courier)
                 .assertThat()
+                .statusCode(409)
                 .body("message",
-                        equalTo("Этот логин уже используется. Попробуйте другой."))
-                .and()
-                .statusCode(409);
+                        equalTo("Этот логин уже используется. Попробуйте другой."));
     }
+
     @Test
     @DisplayName("Создание курьера без пароля")
     @Description("Попытка создать курьера без введенного пароля")

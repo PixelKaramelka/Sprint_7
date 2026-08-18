@@ -1,6 +1,7 @@
 import io.qameta.allure.Description;
 import io.qameta.allure.junit4.DisplayName;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import project.steps.CourierSteps;
@@ -28,17 +29,18 @@ public class LoginCourierTest {
         courierSteps.courierDeleteAfterLogin(courierLoginRequest);
 
     }
-
-    @Test
-    @DisplayName("Авторизация курьера")
-    @Description("Проверка, что курьер может авторизоваться с валидными данными")
-    public void loginCourier() {
-
+    @Before
+    public void setUp() {
         Courier courier = new Courier(login, password, firstName);
 
         courierSteps.courierCreate(courier)
                 .assertThat()
                 .statusCode(201);
+    }
+    @Test
+    @DisplayName("Авторизация курьера")
+    @Description("Проверка, что курьер может авторизоваться с валидными данными")
+    public void loginCourier() {
 
         courierSteps.courierLogin(validCourierLoginRequest)
                 .assertThat()
@@ -46,25 +48,17 @@ public class LoginCourierTest {
                 .and()
                 .statusCode(200);
     }
-
     @Test
     @DisplayName("Авторизация курьера без логина")
     @Description("Проверка, что курьер не может авторизоваться без введенного логина")
     public void loginCourierWithoutLogin() {
-
-        Courier courier = new Courier(login, password, firstName);
-
-        courierSteps.courierCreate(courier)
-                .assertThat()
-                .statusCode(201);
 
         CourierLoginRequest invalidLoginRequest =
                 new CourierLoginRequest(null, password);
 
         courierSteps.courierLogin(invalidLoginRequest)
                 .assertThat()
-                .body("message",
-                        equalTo("Недостаточно данных для входа"))
+                .body("message", equalTo("Недостаточно данных для входа"))
                 .and()
                 .statusCode(400);
     }
@@ -84,17 +78,35 @@ public class LoginCourierTest {
     }
 
     @Test
-    @DisplayName("Авторизация курьера, используя несуществующие данные")
-    @Description("Проверка, что курьер не может авторизоваться, используя несуществующие данные для входа")
-    public void loginCourierWithNonExistentCredential () {
+    @DisplayName("Авторизация курьера с неправильным логином")
+    @Description("Проверка, что курьер не может авторизоваться с несуществующим логином")
+    public void loginCourierWithIncorrectLogin() {
 
-        CourierLoginRequest courierLoginRequest = new CourierLoginRequest(login, password);
+        CourierLoginRequest courierLoginRequest =
+                new CourierLoginRequest("incorrectLogin", password);
+
         CourierSteps courierSteps = new CourierSteps();
 
         courierSteps.courierLogin(courierLoginRequest)
-                .assertThat().body("message", equalTo("Учетная запись не найдена"))
+                .assertThat()
+                .body("message", equalTo("Учетная запись не найдена"))
                 .and()
                 .statusCode(404);
+    }
+    @Test
+    @DisplayName("Авторизация курьера с неправильным паролем")
+    @Description("Проверка, что курьер не может авторизоваться с неправильным паролем")
+    public void loginCourierWithIncorrectPassword() {
 
+        CourierLoginRequest courierLoginRequest =
+                new CourierLoginRequest(login, "incorrectPassword");
+
+        CourierSteps courierSteps = new CourierSteps();
+
+        courierSteps.courierLogin(courierLoginRequest)
+                .assertThat()
+                .body("message", equalTo("Учетная запись не найдена"))
+                .and()
+                .statusCode(404);
     }
 }
